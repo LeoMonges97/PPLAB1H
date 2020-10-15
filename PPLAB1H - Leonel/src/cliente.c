@@ -1,7 +1,7 @@
 /*
  * cliente.c
  *
- *  Created on: 12 oct. 2020
+ *  Created on: 15 oct. 2020
  *      Author: leo
  */
 
@@ -13,6 +13,55 @@
 #include "cliente.h"
 
 static int cli_generarIdNuevo(void);
+
+//Funcion agregado
+int cli_confirmaLaBajaDeUsuario(Cliente* pArray, int limite, int idBajar)
+{
+	int respuesta = 0;
+
+	if(pArray != NULL && limite > 0 && idBajar > 0)
+	{
+		for(int i = 0; i < limite;  i++)
+		{
+			if(pArray[i].isEmpty == FALSE && pArray[i].id == idBajar)
+			{
+				pArray[i].isEmpty = TRUE;
+				respuesta = 1;
+			}
+		}
+	}
+	return respuesta;
+}
+
+/**@brief cli_altaForzada(): Completa los datos de un alta utilizando los parametros
+ * @param Cliente* pArray, Es el puntero al array de enteros.
+ * @param int limite, es el limite de array.
+ * @return (-1) Error / (0) Ok
+ */
+int cli_altaForzada(Cliente* pArray, int limite, int indice,
+		int id,
+		char* nombre,
+		char* apellido,
+		char* cuit)
+{
+	int retorno = -1;
+
+	Cliente buffer;
+
+	if(	pArray != NULL && limite > 0 && id > 0 && indice >= 0)
+	{
+		strncpy(buffer.nombre,nombre,SIZE_NOMBRE);
+		strncpy(buffer.apellido,apellido,SIZE_NOMBRE);
+		strncpy(buffer.cuit,cuit,SIZE_CUIT);
+
+		buffer.id = cli_generarIdNuevo();
+		pArray[indice] = buffer;
+		pArray[indice].isEmpty = FALSE;
+
+		retorno = 0;
+	}
+	return retorno;
+}
 
 /**@brief generarIdNuevo(): Cada vez que la llamo, me devuelve un ID nuevo que nunca me devolvio antes.
  */
@@ -60,13 +109,15 @@ int cli_alta(Cliente* pArray,int limite)
 	{
 		if(cli_buscarLibreRef(pArray, limite,&indice) == 0) // Busca un lugar libre
 		{
-			if(	utn_getNombre("\n . nombre: "," > Error!\n",buffer.nombre,2,SIZE_NOMBRE) == 0 &&
-					utn_getNombre("\n . apellido: "," > Error!\n",buffer.apellido,2,SIZE_NOMBRE) == 0 &&
+			if(	utn_getNombre("\n . Nombre: "," > Error!\n",buffer.nombre,2,SIZE_NOMBRE) == 0 &&
+					utn_getNombre("\n . Apellido: "," > Error!\n",buffer.apellido,2,SIZE_NOMBRE) == 0 &&
 					utn_getCuilOrCuit(buffer.cuit, 2) == 0)
 			{
 				buffer.id = cli_generarIdNuevo();
 				pArray[indice] = buffer;
 				pArray[indice].isEmpty = FALSE;
+				printf("\n . Informacion:\n");
+				cli_imprimirPorID(pArray,limite,indice);
 				retorno = 0;
 			}
 			else
@@ -77,36 +128,6 @@ int cli_alta(Cliente* pArray,int limite)
 		else
 		{
 			printf("\n > Lo sentimos, no hay posiciones libres!\n");
-		}
-	}
-	return retorno;
-}
-
-/**@brief cli_altaConIndice(): Realiza el alta de una entidad solo si el indice que le paso corresponde a un Empty.
- * @param Cliente* pArray, Es el puntero al array de enteros.
- * @param int limite, es el limite de array.
- * @param int indice, es el indice donde se cargara el ent.
- * @return (-1) Error / (0) Ok
- */
-int cli_altaConIndice(Cliente* pArray,int limite,int indice)
-{
-	int retorno = -1;
-	Cliente buffer;
-
-	if(	pArray != NULL && limite > 0 &&
-			indice >=0 &&
-			indice < limite &&
-			pArray[indice].isEmpty == TRUE)
-	{
-		if(	utn_getNombre("\n . nombre: "," > Error!\n",buffer.nombre,2,SIZE_NOMBRE) == 0 &&
-				utn_getNombre("\n . apellido: "," > Error!\n",buffer.apellido,2,SIZE_NOMBRE) == 0 &&
-				utn_getCuilOrCuit(buffer.cuit, 2) == 0
-		)
-		{
-			buffer.id = cli_generarIdNuevo();
-			pArray[indice] = buffer;
-			pArray[indice].isEmpty = FALSE;
-			retorno = 0;
 		}
 	}
 	return retorno;
@@ -159,13 +180,11 @@ int cli_modificar(Cliente* pArray,int limite)
  * @param int indice, es el indice donde se cargara el dato.
  * @return (-1) Error / (0) Ok
  */
-int cli_baja(Cliente* pArray, int limite)
+int cli_baja(Cliente* pArray, int limite, int* idSeleccionado)
 {
-	// Tipo de baja: Logica
 	int retorno = -1;
 	int idBajar;
 	int indice;
-	int respuesta;
 
 	cli_imprimir(pArray,limite);
 
@@ -175,25 +194,16 @@ int cli_baja(Cliente* pArray, int limite)
 		{
 			printf("\n . Dato seleccionado:\n");
 			cli_imprimirPorID(pArray,limite,indice);
-			if(	pArray != NULL && limite > 0 && indice >= 0 && indice < limite && pArray[indice].isEmpty == FALSE)
-			{
-				if(utn_getInt("\n . Seguro que desea borrar todos del ID selecionado?\n"" . 1 - Si\n"" . 2 - No\n"" ~ Ingrese la opcion: ", " > Error! Seleccione 1 o 2\n",&respuesta,2,1,2) == 0)
-				{
-					if(respuesta == 1)
-					{
-						pArray[indice].isEmpty = TRUE;
-						//pArray[indice].isEmpty = TRUE; de publicaciones
-						retorno = 0;
-					}
-					if(respuesta == 2)
-					{
-						printf(" . OK, Dato salvado!\n");
-					}
-				}
-			}
+			*idSeleccionado = idBajar;
+			retorno = 0;
+		}
+		else
+		{
+			printf(" > Lo sentimos, no se puedo encontrar el ID que desea...");
 		}
 	}
 	return retorno;
+
 }
 
 /**@brief cli_imprimir(): Imprime las entidades cargadas.
@@ -212,7 +222,6 @@ int cli_imprimir(Cliente* pArray, int limite)
 		{
 			if(pArray[j].isEmpty == FALSE)
 			{
-				//printf("\t     ID: %d\t CUIT: %s\t Apellido/Nombre: %s, %s\t Cantidad de Avisos Activos: %d\n",
 				printf("\t     ID: %d\t CUIT: %s\t Apellido/Nombre: %s, %s\n",
 						pArray[j].id,
 						pArray[j].cuit,
@@ -234,28 +243,15 @@ int cli_imprimir(Cliente* pArray, int limite)
 int cli_imprimirPorID(Cliente* pArray, int limite, int index)
 {
 	int retorno = -1;
-	//char strTipo [10];
-
 	if(pArray != NULL && limite > 0 && index < limite)
 	{
 		if(pArray[index].isEmpty == FALSE)
 		{
-			/*if(pArray[index].tipo == DEFINE_LOQUEVENGA)
-			{
-				//strncpy
-				sprintf(strTipo,"Descripcion1")
-			}
-			else
-			{
-				//strncpy
-				sprintf(strTipo,"Descripcion2")
-			}*/
-			printf("\n\t     ID: %d\t CUIT: %s\t Apellido/Nombre: %s, %s\n",
+			printf("\n\t     ID de Cliente: %d\t CUIT: %s\t Apellido/Nombre: %s, %s\n",
 					pArray[index].id,
 					pArray[index].cuit,
 					pArray[index].apellido,
 					pArray[index].nombre);
-			// Agregar strTipo al prinft y la mascara
 			retorno = 0;
 		}
 	}
@@ -406,34 +402,5 @@ int cli_ordenarAlfabeticamente(Cliente* pArray, int limite, int orden)
 	return retorno;
 }*/
 
-/**@brief cli_altaForzada(): Completa los datos de un alta utilizando los parametros
- * @param Cliente* pArray, Es el puntero al array de enteros.
- * @param int limite, es el limite de array.
- * @return (-1) Error / (0) Ok
- */
-int cli_altaForzada(Cliente* pArray, int limite, int indice,
-		int id,
-		char* nombre,
-		char* apellido,
-		char* cuit)
-{
-	int retorno = -1;
-
-	Cliente buffer;
-
-	if(	pArray != NULL && limite > 0 && id > 0 && indice >= 0)
-	{
-		strncpy(buffer.nombre,nombre,SIZE_NOMBRE);
-		strncpy(buffer.apellido,apellido,SIZE_NOMBRE);
-		strncpy(buffer.cuit,cuit,SIZE_CUIT);
-
-		buffer.id = cli_generarIdNuevo();
-		pArray[indice] = buffer;
-		pArray[indice].isEmpty = FALSE;
-
-		retorno = 0;
-	}
-	return retorno;
-}
 
 
