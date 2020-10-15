@@ -13,8 +13,10 @@
 #include "utn.h"
 #include "cliente.h"
 #include "aviso.h"
+#include "informes.h"
 #define CANT_OPCIONES 8
-#define ACTIVAR_ABM 0 // 0 = activar abm sin hardcodeo / 1 = iniciar abm con altaForzada
+#define CANT_OPCIONES_INFORMES 4
+#define ACTIVAR_ABM 1 // 0 = activar abm sin hardcodeo / 1 = iniciar abm con altaForzada
 
 int main(void)
 {
@@ -32,19 +34,30 @@ int main(void)
 	avi_initArray(arrayAvisos,QTY_AVISOS);
 
 	//altaForzada:
-	//int contIndices = 0;
-	//int contIDs = 1;
+	int contIndices = 0;
+	int contIDs = 1;
+	int contIndicesAvi = 0;
+	int contIDsAvi = 1;
+	int idUsuario;
+	int opcionInformes;
 
-	//int contIndicesAvi = 0;
-	//int contIDsAvi = 1;
+	cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"A_firstName","A_lastName","21-45631278-5");
+	cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"B_firstName","B_lastName","21-41234579-5");
+	cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"C_firstName","C_lastName","21-35634470-5");
+	cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"D_firstName","D_lastName","21-20233571-5");
+	cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"E_firstName","E_lastName","21-31245687-5");
 
-	//cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"Leonel","Monges","21-45631278-5",1);
-	//cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"Diego","Maradona","21-45631278-5",1);
-	//cli_altaForzada(arrayClientes, QTY_CLIENTES,contIndices++,contIDs++,"German","Martitegui","21-45631278-5",0);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,1,"ZARZAZRAZ",3,2);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,1,"QWEWQEQWE",3,1);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,1,"ASDASDASD",3,3);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,0,"QWEWQEQWE",5,3);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,0,"ASDASDASD",1,4);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,1,"ZARZAZRAZ",4,2);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,0,"QWEWQEQWE",2,1);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,0,"ASDASDASD",4,2);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,0,"QWEWQEQWE",2,2);
+	avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,0,"ASDASDASD",1,5);
 
-	//avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,1,"ZARZAZRAZ",2,2);
-	//avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,0,"QWEWQEQWE",2,2);
-	//avi_altaForzada(arrayAvisos,QTY_AVISOS,contIndicesAvi++,contIDsAvi++,1,"ASDASDASD",1,3);
 
 	do
 	{
@@ -56,7 +69,8 @@ int main(void)
 				"\n 4 - Alta Aviso."
 				"\n 5 - Modificar aviso."
 				"\n 6 - Imprimir lista de clientes."
-				"\n 7 - Salir."
+				"\n 7 - Informes."
+				"\n 8 - Salir."
 				"\n\n ~ Ingrese opcion: ",
 				"\nError",&op,2,1,CANT_OPCIONES);
 		switch(op)
@@ -88,9 +102,15 @@ int main(void)
 			}
 			break;
 		case 3:
-			if(flagDatoCargado  == 1 && cli_baja(arrayClientes,QTY_CLIENTES) == 0)
+			if(flagDatoCargado  == 1 && cli_baja(arrayClientes,QTY_CLIENTES,&idUsuario) == 0)
 			{
-				printf("\n . Baja realizada correctamente!\n");
+				if(avi_baja(arrayAvisos,QTY_AVISOS,arrayClientes,QTY_CLIENTES,idUsuario) == 0)
+				{
+					if(cli_confirmaLaBajaDeUsuario(arrayClientes,QTY_CLIENTES,idUsuario) == 1)
+					{
+						printf("\n . Baja realizada correctamente!\n");
+					}
+				}
 			}
 			else
 			{
@@ -106,31 +126,17 @@ int main(void)
 			{
 				printf(" > Error!\n");
 			}
-
-			/*if(flagOrdenamiento == 1 && cli_ordenarAlfabeticamente(arrayClientes,QTY_CLIENTES,1) == 0)
-			{
-				printf("\n . Datos ordenados correctamente!\n");
-			}
-			else
-			{
-				printf(" > Error!\n");
-			}*/
 			break;
 		case 5:
 			if(avi_modificar(arrayAvisos,QTY_AVISOS,arrayClientes,QTY_CLIENTES) == 0)
 			{
 				printf("\n . Aviso actualizado correctamente!\n");
 			}
-			{
-				printf(" > Error!\n");
-
-			}
 			break;
 		case 6:
 			if(flagDatoCargado == 1)
 			{
-				cli_imprimir(arrayClientes,QTY_CLIENTES);
-				avi_imprimir(arrayAvisos,QTY_AVISOS);
+				avi_imprimirTodosLosClientesConSusAvisosActivos(arrayAvisos,QTY_AVISOS,arrayClientes,QTY_CLIENTES);
 			}
 			else
 			{
@@ -138,9 +144,42 @@ int main(void)
 			}
 			break;
 		case 7:
-			printf("Informes");
+			do
+			{
+				utn_getInt("\n   ********* Informes *********\n"
+						" . Seleccione la opcion a elegir:\n\n"
+						" 1 - Clientes con mas avisos.\n"
+						" 2 - Cantidad de avisos pausados.\n"
+						" 3 - Rubros con mas avisos.\n"
+						" 4 - Salir.\n"
+						"\n ~ Ingrese la opcion: "
+						," > Error!\n",&opcionInformes,2,1,4);
+				switch(opcionInformes)
+				{
+				case 1:
+					printf(" Me falta Clientes con mas avisos");
+					break;
+				case 2:
+					//printf("Cantidad de avisos pausados");
+					inf_imprimirCantidadDeAvisosPausados(arrayAvisos,QTY_AVISOS);
+					break;
+				case 3:
+					printf(" Me falta Rubros con mas avisos");
+					break;
+				}
+			}while(opcionInformes != CANT_OPCIONES_INFORMES);
 			break;
 		}
 
 	}while(op != CANT_OPCIONES);
 }
+
+//Ordenamiento
+/*if(flagOrdenamiento == 1 && cli_ordenarAlfabeticamente(arrayClientes,QTY_CLIENTES,1) == 0)
+{
+	printf("\n . Datos ordenados correctamente!\n");
+}
+else
+{
+	printf(" > Error!\n");
+}*/
