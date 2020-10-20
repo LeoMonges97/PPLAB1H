@@ -628,13 +628,12 @@ int inf_buscarCUITdeCliente(Cliente* pArrayCliente, int limiteCliente)
 					retorno = pArrayCliente[i].id;
 					break;
 				}
-				else
-				{
-					printf("\n > Lo siento! No existe ese cuit...\n");
-					break;
-				}
 			}
 		}
+	}
+	if(retorno == -1)
+	{
+		printf("\n > Lo siento! No existe ese cuit...\n");
 	}
 	return retorno;
 }
